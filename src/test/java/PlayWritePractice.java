@@ -1,7 +1,9 @@
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.AriaRole;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.example.pages.HomePage;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.nio.file.Paths;
@@ -10,7 +12,9 @@ import java.util.regex.Pattern;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-public class PlayWritePractice {
+public class PlayWritePractice extends TestBase {
+
+    private static Logger log = LogManager.getLogger();
 
     public void firstTest() {
 
@@ -39,7 +43,7 @@ public class PlayWritePractice {
             for (BrowserType type : browserTypes) {
                 Page page = type.launch().newPage();
                 page.navigate("https://www.whatsmybrowser.org/");
-                page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get(type.name()+ ".png")));
+                page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get(type.name() + ".png")));
             }
         }
     }
@@ -51,21 +55,23 @@ public class PlayWritePractice {
             BrowserType browserType = pw.chromium();
             Browser browser = browserType.launch(new BrowserType.LaunchOptions().setHeadless(false).setChannel("chrome"));
             Page page = browser.newPage();
+            log.info("Launched Page");
             page.navigate("https://the-internet.herokuapp.com/");
             page.locator("//a[contains(text(),'Form Authentication')]").click();
             page.getByRole(AriaRole.TEXTBOX,
                     new Page.GetByRoleOptions().setName("username")).fill("tomsmith");
-              page.getByRole(AriaRole.TEXTBOX,
+            page.getByRole(AriaRole.TEXTBOX,
                     new Page.GetByRoleOptions().setName("password")).type("SuperSecretPassword!");
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName(" Login"))
                     .click();
+            log.info("Credentials were retrieved");
             boolean pageOpened = (page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Welcome to the Secure Area. When you are done click logout below."))).isVisible();
-            Assert.assertTrue(pageOpened,"The login was unsuccessful");
+            Assert.assertTrue(pageOpened, "The login was unsuccessful");
         }
     }
 
     @Test
-    public void testNavigate(){
+    public void testNavigate() {
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false).setChannel("chrome"));
             Page page = browser.newPage();
@@ -86,5 +92,12 @@ public class PlayWritePractice {
             // Expects the URL to contain intro.
             assertThat(page).hasURL(Pattern.compile(".*intro"));
         }
+    }
+
+    @Test
+    public void testInputCredentials() {
+        HomePage homepage = new HomePage(page);
+        String title = homepage.getHomePageTitle();
+        System.out.println(title);
     }
 }
